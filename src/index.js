@@ -104,7 +104,7 @@ function createImage(src) {
   image.src = src;
   return image;
 }
-
+// Additional cases (does not include the power up pellet that's inserted later in the vid)
 map.forEach((row, i) => {
   row.forEach((symbol, j) => {
     switch (symbol) {
@@ -379,21 +379,9 @@ function animate() {
       }
     }
   }
-  for (let i = pellets.length - 1; 0 < i; i--) {
-    const pellet = pellets[i];
-
+  pellets.forEach((pellet) => {
     pellet.draw();
-    if (
-      Math.hypot(
-        pellet.position.x - player.position.x,
-        pellet.position.y - player.position.y,
-      ) <
-      pellet.radius + player.radius
-    ) {
-      console.log("touching");
-      pellets.splice(i, 1);
-    }
-  }
+  });
 
   boundaries.forEach((boundary) => {
     boundary.draw();
