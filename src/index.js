@@ -7,20 +7,22 @@ canvas.height = innerHeight;
 class Boundary {
   static width = 40;
   static height = 40;
-  constructor({ position }) {
+  constructor({ position, image }) {
     this.position = position;
     this.width = 40;
     this.height = 40;
+    this.image = image;
   }
 
   draw() {
-    c.fillStyle = "blue";
-    c.fillRect(this.position.x, this.position.y, this.width, this.height);
+    // c.fillStyle = "blue";
+    // c.fillRect(this.position.x, this.position.y, this.width, this.height);
+    c.drawImage(this.image, this.position.x, this.position.y);
   }
 }
 
 class Player {
-  constructor({position, velocity}) {
+  constructor({ position, velocity }) {
     this.position = position;
     this.velocity = velocity;
     this.radius = 18;
@@ -41,30 +43,27 @@ class Player {
   }
 }
 
-
 const map = [
-  ["-", "-", "-", "-", "-", "-", "-"],
-  ["-", "", "", "", "", "", "-"],
-  ["-", "", "-", "", "-", "", "-"],
-  ["-", "", "", "", "", "", "-"],
-  ["-", "", "-", "", "-", "", "-"],
-  ["-", "", "", "", "", "", "-"],
-  ["-", "-", "-", "-", "-", "-", "-"],
+  ["1", "-", "-", "-", "-", "-", "2"],
+  ["|", " ", " ", " ", " ", " ", "|"],
+  ["|", " ", "b", " ", "b", " ", "|"],
+  ["|", " ", " ", " ", " ", " ", "|"],
+  ["|", " ", "b", " ", "b", " ", "|"],
+  ["|", " ", " ", " ", " ", " ", "|"],
+  ["4", "-", "-", "-", "-", "-", "3"],
 ];
 
 const boundaries = [];
-const player = new Player(
-  {
-    position: {
-      x: Boundary.width + Boundary.width / 2,
-      y: Boundary.height + Boundary.height / 2,
-    },
-    velocity: {
-      x: 0,
-      y: 0,
-    },
-  }
-);
+const player = new Player({
+  position: {
+    x: Boundary.width + Boundary.width / 2,
+    y: Boundary.height + Boundary.height / 2,
+  },
+  velocity: {
+    x: 0,
+    y: 0,
+  },
+});
 
 const keys = {
   w: {
@@ -78,9 +77,14 @@ const keys = {
   },
   d: {
     pressed: false,
-  }
+  },
 };
 
+function creatImage(src) {
+  const image = new Image();
+  image.src = src;
+  return image;
+}
 
 map.forEach((row, i) => {
   row.forEach((symbol, j) => {
@@ -92,6 +96,73 @@ map.forEach((row, i) => {
               x: Boundary.width * j,
               y: Boundary.height * i,
             },
+            image: creatImage("./img/pipeHorizontal.png"),
+          }),
+        );
+        break;
+      case "|":
+        boundaries.push(
+          new Boundary({
+            position: {
+              x: Boundary.width * j,
+              y: Boundary.height * i,
+            },
+            image: creatImage("./img/pipeVertical.png"),
+          }),
+        );
+        break;
+      case "1":
+        boundaries.push(
+          new Boundary({
+            position: {
+              x: Boundary.width * j,
+              y: Boundary.height * i,
+            },
+            image: creatImage("./img/pipeCorner1.png"),
+          }),
+        );
+        break;
+      case "2":
+        boundaries.push(
+          new Boundary({
+            position: {
+              x: Boundary.width * j,
+              y: Boundary.height * i,
+            },
+            image: creatImage("./img/pipeCorner2.png"),
+          }),
+        );
+        break;
+      case "3":
+        boundaries.push(
+          new Boundary({
+            position: {
+              x: Boundary.width * j,
+              y: Boundary.height * i,
+            },
+            image: creatImage("./img/pipeCorner3.png"),
+          }),
+        );
+        break;
+      case "4":
+        boundaries.push(
+          new Boundary({
+            position: {
+              x: Boundary.width * j,
+              y: Boundary.height * i,
+            },
+            image: creatImage("./img/pipeCorner4.png"),
+          }),
+        );
+        break;
+      case "b":
+        boundaries.push(
+          new Boundary({
+            position: {
+              x: Boundary.width * j,
+              y: Boundary.height * i,
+            },
+            image: creatImage("./img/block.png"),
           }),
         );
         break;
@@ -101,101 +172,92 @@ map.forEach((row, i) => {
 
 function circleCollidesWithRectangle({ circle, rectangle }) {
   return (
-    circle.position.y - circle.radius + circle.velocity.y
-      <= 
-    rectangle.position.y + rectangle.height 
-      &&
-    circle.position.x + circle.radius + circle.velocity.x
-      >= 
-    rectangle.position.x 
-      && 
-    circle.position.y + circle.radius + circle.velocity.y
-      >= 
-    rectangle.position.y 
-      && 
-    circle.position.x - circle.radius + circle.velocity.x
-      <= 
-    rectangle.position.x + rectangle.width
+    circle.position.y - circle.radius + circle.velocity.y <=
+      rectangle.position.y + rectangle.height &&
+    circle.position.x + circle.radius + circle.velocity.x >=
+      rectangle.position.x &&
+    circle.position.y + circle.radius + circle.velocity.y >=
+      rectangle.position.y &&
+    circle.position.x - circle.radius + circle.velocity.x <=
+      rectangle.position.x + rectangle.width
   );
 }
-
 
 function animate() {
   requestAnimationFrame(animate);
   c.clearRect(0, 0, canvas.width, canvas.height);
 
-  if(keys.w.pressed && lastKey === "w") {
-    for(let i = 0; i < boundaries.length; i++) {
+  if (keys.w.pressed && lastKey === "w") {
+    for (let i = 0; i < boundaries.length; i++) {
       const boundary = boundaries[i];
-      if(
+      if (
         circleCollidesWithRectangle({
-        circle: {...player, velocity: {x: 0, y: -1}},
-        rectangle: boundary
+          circle: { ...player, velocity: { x: 0, y: -1 } },
+          rectangle: boundary,
         })
       ) {
         player.velocity.y = 0;
         break;
-      } else{
-      player.velocity.y = -1;
+      } else {
+        player.velocity.y = -1;
       }
     }
-  } else if(keys.s.pressed && lastKey === "s") {
-    for(let i = 0; i < boundaries.length; i++) {
+  } else if (keys.s.pressed && lastKey === "s") {
+    for (let i = 0; i < boundaries.length; i++) {
       const boundary = boundaries[i];
-      if(
+      if (
         circleCollidesWithRectangle({
-        circle: {...player, velocity: {x: 0, y: 1}},
-        rectangle: boundary
+          circle: { ...player, velocity: { x: 0, y: 1 } },
+          rectangle: boundary,
         })
       ) {
         player.velocity.y = 0;
         break;
-      } else{
-      player.velocity.y = 1;
+      } else {
+        player.velocity.y = 1;
       }
     }
-  } else if(keys.a.pressed && lastKey === "a") {
-    for(let i = 0; i < boundaries.length; i++) {
+  } else if (keys.a.pressed && lastKey === "a") {
+    for (let i = 0; i < boundaries.length; i++) {
       const boundary = boundaries[i];
-      if(
+      if (
         circleCollidesWithRectangle({
-        circle: {...player, velocity: {x: -1, y: 0}},
-        rectangle: boundary
+          circle: { ...player, velocity: { x: -1, y: 0 } },
+          rectangle: boundary,
         })
       ) {
         player.velocity.x = 0;
         break;
-      } else{
-      player.velocity.x = -1;
+      } else {
+        player.velocity.x = -1;
       }
     }
-  } else if(keys.d.pressed && lastKey === "d") {
-    for(let i = 0; i < boundaries.length; i++) {
+  } else if (keys.d.pressed && lastKey === "d") {
+    for (let i = 0; i < boundaries.length; i++) {
       const boundary = boundaries[i];
-      if(
+      if (
         circleCollidesWithRectangle({
-        circle: {...player, velocity: {x: 1, y: 0}},
-        rectangle: boundary
+          circle: { ...player, velocity: { x: 1, y: 0 } },
+          rectangle: boundary,
         })
       ) {
         player.velocity.x = 0;
         break;
-      } else{
-      player.velocity.x = 1;
+      } else {
+        player.velocity.x = 1;
       }
     }
   }
 
-
   boundaries.forEach((boundary) => {
     boundary.draw();
 
-    if(circleCollidesWithRectangle({ 
-      circle: player, 
-      rectangle: boundary 
-    })
-  )
-    {
+    if (
+      circleCollidesWithRectangle({
+        circle: player,
+        rectangle: boundary,
+      })
+    ) {
       player.velocity.y = 0;
       player.velocity.x = 0;
     }
@@ -206,25 +268,24 @@ function animate() {
 }
 animate();
 
-
 player.update();
 
 window.addEventListener("keydown", ({ key }) => {
   switch (key) {
     case "w":
-      keys.w.pressed = true
+      keys.w.pressed = true;
       lastKey = "w";
       break;
     case "s":
-      keys.s.pressed = true
+      keys.s.pressed = true;
       lastKey = "s";
       break;
     case "a":
-      keys.a.pressed = true
+      keys.a.pressed = true;
       lastKey = "a";
       break;
     case "d":
-      keys.d.pressed = true
+      keys.d.pressed = true;
       lastKey = "d";
       break;
   }
@@ -233,17 +294,16 @@ window.addEventListener("keydown", ({ key }) => {
 window.addEventListener("keyup", ({ key }) => {
   switch (key) {
     case "w":
-      keys.w.pressed = false
+      keys.w.pressed = false;
       break;
     case "s":
-      keys.s.pressed = false
+      keys.s.pressed = false;
       break;
     case "a":
-      keys.a.pressed = false
+      keys.a.pressed = false;
       break;
     case "d":
-      keys.d.pressed = false
+      keys.d.pressed = false;
       break;
   }
 });
-
