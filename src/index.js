@@ -1,4 +1,5 @@
 const canvas = document.querySelector("canvas");
+const scoreEl = document.querySelector("#scoreEl");
 const c = canvas.getContext("2d");
 
 canvas.width = innerWidth;
@@ -83,6 +84,9 @@ const keys = {
     pressed: false,
   },
 };
+//let lastKey = "";
+let score = 0;
+
 const map = [
   ["1", "-", "-", "-", "-", "-", "-", "-", "-", "-", "2"],
   ["|", ".", ".", ".", ".", ".", ".", ".", ".", ".", "|"],
@@ -390,8 +394,9 @@ function animate() {
       ) <
       pellet.radius + player.radius
     ) {
-      console.log("touching");
       pellets.splice(i, 1);
+      score += 10;
+      scoreEl.innerHTML = score;
     }
   }
 
