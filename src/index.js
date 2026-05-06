@@ -50,6 +50,7 @@ class Ghost {
     this.velocity = velocity;
     this.radius = 18;
     this.color = color;
+    this.prevCollisions = [];
   }
 
   draw() {
@@ -496,7 +497,52 @@ function animate() {
         collisions.push('up');
       }
     });
-    console.log(collisions);
+
+    if (collisions.length > ghost.prevCollisions.length) 
+    ghost.prevCollisions = collisions;
+  
+    if (JSON.stringify(collisions) !== JSON.stringify(ghost.prevCollisions)) {
+      
+      if(ghost.velocity.x > 0) ghost.prevCollisions.push('right');
+      else if(ghost.velocity.x < 0) ghost.prevCollisions.push('left');
+      else if(ghost.velocity.y > 0) ghost.prevCollisions.push('down');
+      else if(ghost.velocity.y < 0) ghost.prevCollisions.push('up');
+
+      const pathways = ghost.prevCollisions.filter((collision) => {
+          return !collisions.includes(collision);
+      
+      });
+      console.log({ pathways });
+
+      const direction = pathways[Math.floor(Math.random() * pathways.length)];
+      console.log({ direction });
+
+      switch (direction) {
+        case 'down': 
+          ghost.velocity.y = 1;
+          ghost.velocity.x = 0;
+          break;
+    }
+      switch (direction) {
+        case 'up': 
+          ghost.velocity.y = -1;
+          ghost.velocity.x = 0;
+          break;
+    }
+      switch (direction) {
+        case 'right': 
+          ghost.velocity.y = 0;
+          ghost.velocity.x = 1;
+          break;
+    }
+      switch (direction) {
+        case 'left': 
+          ghost.velocity.y = 0;
+          ghost.velocity.x = -1;
+          break;
+    }
+        ghost.prevCollisions = [];
+    }
   });
 }
 animate();
