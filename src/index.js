@@ -45,12 +45,14 @@ class Player {
 }
 
 class Ghost {
+  static speed = 1;
   constructor({ position, velocity, color = 'red' }) {
     this.position = position;
     this.velocity = velocity;
     this.radius = 18;
     this.color = color;
     this.prevCollisions = [];
+    this.speed = 1;
   }
 
   draw() {
@@ -94,7 +96,18 @@ const ghosts = [
       x: 1,
       y: 0
     }
-  })
+  }),
+   new Ghost({
+    position: {
+      x: Boundary.width * 6 + Boundary.width / 2,
+      y: Boundary.height * 3 + Boundary.height / 2,
+    },
+    velocity: {
+      x: 1,
+      y: 0
+    },
+    color :'blue'
+  }),
 ];
 const player = new Player({
   position: {
@@ -343,20 +356,22 @@ map.forEach((row, i) => {
 });
 
 function circleCollidesWithRectangle({ circle, rectangle }) {
+  const padding = Boundary.width / 2 - circle.radius - 1;
   return (
     circle.position.y - circle.radius + circle.velocity.y <=
-      rectangle.position.y + rectangle.height &&
+      rectangle.position.y + rectangle.height + padding &&
     circle.position.x + circle.radius + circle.velocity.x >=
-      rectangle.position.x &&
+      rectangle.position.x - padding &&
     circle.position.y + circle.radius + circle.velocity.y >=
-      rectangle.position.y &&
+      rectangle.position.y - padding &&
     circle.position.x - circle.radius + circle.velocity.x <=
-      rectangle.position.x + rectangle.width
+      rectangle.position.x + rectangle.width + padding
   );
 }
 
+let animationId;
 function animate() {
-  requestAnimationFrame(animate);
+  animationId = requestAnimationFrame(animate);
   c.clearRect(0, 0, canvas.width, canvas.height);
 
   if (keys.w.pressed && lastKey === "w") {
@@ -455,6 +470,18 @@ function animate() {
   ghosts.forEach((ghost) => {
     ghost.update();
 
+      if (
+      Math.hypot(
+        ghost.position.x - player.position.x,
+        ghost.position.y - player.position.y,
+      ) <
+      ghost.radius + player.radius
+    ) {
+      cancelAnimationFrame(animationId);
+      alert("Game Over");
+      console.log("Game Over");
+    }
+
     const collisions = [];
     boundaries.forEach((boundary) => {
       if (
@@ -519,26 +546,26 @@ function animate() {
 
       switch (direction) {
         case 'down': 
-          ghost.velocity.y = 1;
+          ghost.velocity.y = Ghost.speed;
           ghost.velocity.x = 0;
           break;
     }
       switch (direction) {
         case 'up': 
-          ghost.velocity.y = -1;
+          ghost.velocity.y = -Ghost.speed;
           ghost.velocity.x = 0;
           break;
     }
       switch (direction) {
         case 'right': 
           ghost.velocity.y = 0;
-          ghost.velocity.x = 1;
+          ghost.velocity.x = Ghost.speed;
           break;
     }
       switch (direction) {
         case 'left': 
           ghost.velocity.y = 0;
-          ghost.velocity.x = -1;
+          ghost.velocity.x = -Ghost.speed;
           break;
     }
         ghost.prevCollisions = [];
