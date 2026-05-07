@@ -15,7 +15,7 @@ class Boundary {
     this.image = image;
   }
 
-  draw() {  
+  draw() {
     // c.fillStyle = "blue";
     // c.fillRect(this.position.x, this.position.y, this.width, this.height);
     c.drawImage(this.image, this.position.x, this.position.y);
@@ -43,30 +43,6 @@ class Player {
     this.position.y += this.velocity.y;
   }
 }
-
-class Ghost {
-  constructor({ position, velocity, color = 'red' }) {
-    this.position = position;
-    this.velocity = velocity;
-    this.radius = 18;
-    this.color = color;
-  }
-
-  draw() {
-    c.beginPath();
-    c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
-    c.closePath();
-    c.fillStyle = this.color;
-    c.fill();
-  }
-
-  update() {
-    this.draw();
-    this.position.x += this.velocity.x;
-    this.position.y += this.velocity.y;
-  }
-}
-
 class Pellet {
   constructor({ position }) {
     this.position = position;
@@ -83,18 +59,6 @@ class Pellet {
 }
 const pellets = [];
 const boundaries = [];
-const ghosts = [
-  new Ghost({
-    position: {
-      x: Boundary.width * 6 + Boundary.width / 2,
-      y: Boundary.height * 7 + Boundary.height / 2,
-    },
-    velocity: {
-      x: 1,
-      y: 0
-    }
-  })
-];
 const player = new Player({
   position: {
     x: Boundary.width + Boundary.width / 2,
@@ -208,7 +172,7 @@ map.forEach((row, i) => {
           new Boundary({
             position: {
               x: Boundary.width * j,
-              y: Boundary.height * i, 
+              y: Boundary.height * i,
             },
             image: createImage("./img/pipeCorner4.png"),
           }),
@@ -450,54 +414,8 @@ function animate() {
     }
   });
   player.update();
-  
-  ghosts.forEach((ghost) => {
-    ghost.update();
-
-    const collisions = [];
-    boundaries.forEach((boundary) => {
-      if (
-        !collisions.includes('right') && 
-        circleCollidesWithRectangle({
-          circle: { ...ghost, velocity: { x: 1, y: 0 } },
-          rectangle: boundary,
-        })
-      ) {
-        collisions.push('right');
-      }
-
-      if (
-        !collisions.includes('left') && 
-        circleCollidesWithRectangle({
-          circle: { ...ghost, velocity: { x: -1, y: 0 } },
-          rectangle: boundary,
-        })
-      ) {
-        collisions.push('left');
-      }
-
-      if (
-        !collisions.includes('down') && 
-        circleCollidesWithRectangle({
-          circle: { ...ghost, velocity: { x: 0, y: 1 } },
-          rectangle: boundary,
-        })
-      ) {
-        collisions.push('down');
-      }
-
-      if (
-        !collisions.includes('up') && 
-        circleCollidesWithRectangle({
-          circle: { ...ghost, velocity: { x: 0, y: -1 } },
-          rectangle: boundary,
-        })
-      ) {
-        collisions.push('up');
-      }
-    });
-    console.log(collisions);
-  });
+  // player.velocity.x = 0;
+  // player.velocity.y = 0;
 }
 animate();
 
