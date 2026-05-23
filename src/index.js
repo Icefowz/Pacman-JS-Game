@@ -15,7 +15,7 @@ class Boundary {
     this.image = image;
   }
 
-  draw() {  
+  draw() {
     // c.fillStyle = "blue";
     // c.fillRect(this.position.x, this.position.y, this.width, this.height);
     c.drawImage(this.image, this.position.x, this.position.y);
@@ -46,20 +46,21 @@ class Player {
 
 class Ghost {
   static speed = 1;
-  constructor({ position, velocity, color = 'red' }) {
+  constructor({ position, velocity, color = "red" }) {
     this.position = position;
     this.velocity = velocity;
     this.radius = 18;
     this.color = color;
     this.prevCollisions = [];
     this.speed = 1;
+    this.scared = false;
   }
 
   draw() {
     c.beginPath();
     c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
     c.closePath();
-    c.fillStyle = this.color;
+    c.fillStyle = this.scared ? "blue" : this.color;
     c.fill();
   }
 
@@ -84,8 +85,24 @@ class Pellet {
     c.fill();
   }
 }
+class powerUp {
+  constructor({ position }) {
+    this.position = position;
+    this.radius = 8;
+  }
+
+  draw() {
+    c.beginPath();
+    c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+    c.closePath();
+    c.fillStyle = "white";
+    c.fill();
+  }
+}
+
 const pellets = [];
 const boundaries = [];
+const powerUps = [];
 const ghosts = [
   new Ghost({
     position: {
@@ -94,19 +111,19 @@ const ghosts = [
     },
     velocity: {
       x: 1,
-      y: 0
-    }
+      y: 0,
+    },
   }),
-   new Ghost({
+  new Ghost({
     position: {
       x: Boundary.width * 6 + Boundary.width / 2,
       y: Boundary.height * 3 + Boundary.height / 2,
     },
     velocity: {
       x: 1,
-      y: 0
+      y: 0,
     },
-    color :'blue'
+    color: "blue",
   }),
 ];
 const player = new Player({
@@ -222,7 +239,7 @@ map.forEach((row, i) => {
           new Boundary({
             position: {
               x: Boundary.width * j,
-              y: Boundary.height * i, 
+              y: Boundary.height * i,
             },
             image: createImage("./img/pipeCorner4.png"),
           }),
@@ -351,6 +368,16 @@ map.forEach((row, i) => {
           }),
         );
         break;
+      case "p":
+        powerUps.push(
+          new powerUp({
+            position: {
+              x: j * Boundary.width + Boundary.width / 2,
+              y: i * Boundary.height + Boundary.height / 2,
+            },
+          }),
+        );
+        break;
     }
   });
 });
@@ -435,10 +462,60 @@ function animate() {
       }
     }
   }
-  for (let i = pellets.length - 1; 0 < i; i--) {
-    const pellet = pellets[i];
 
+  //detect coll between players and ghosts
+  for (let i = ghosts.length - 1; 0 <= i; i--) {
+    const ghost = ghosts[i];
+    // ghost touches players
+    if (
+      Math.hypot(
+        ghost.position.x - player.position.x,
+        ghost.position.y - player.position.y,
+      ) <
+      ghost.radius + player.radius
+    ) {
+      if (ghost.scared) {
+        ghosts.splice(i, 1);
+      } else {
+        cancelAnimationFrame(animationId);
+        alert("Game Over");
+        console.log("Game Over");
+      }
+    }
+  }
+
+  //powerUp
+  for (let i = powerUps.length - 1; 0 <= i; i--) {
+    const powerUp = powerUps[i];
+    powerUp.draw();
+
+    //player collides with power up
+    if (
+      Math.hypot(
+        powerUp.position.x - player.position.x,
+        powerUp.position.y - player.position.y,
+      ) <
+      powerUp.radius + player.radius
+    ) {
+      powerUps.splice(i, 1);
+
+      //make ghost scare
+      ghosts.forEach((ghost) => {
+        ghost.scared = true;
+        console.log(ghost.scared);
+        setTimeout(() => {
+          ghost.scared = false;
+          console.log(ghost.scared);
+        }, 5000);
+      });
+    }
+  }
+
+  //touch pellets
+  for (let i = pellets.length - 1; 0 <= i; i--) {
+    const pellet = pellets[i];
     pellet.draw();
+
     if (
       Math.hypot(
         pellet.position.x - player.position.x,
@@ -466,78 +543,64 @@ function animate() {
     }
   });
   player.update();
-  
+
   ghosts.forEach((ghost) => {
     ghost.update();
-
-      if (
-      Math.hypot(
-        ghost.position.x - player.position.x,
-        ghost.position.y - player.position.y,
-      ) <
-      ghost.radius + player.radius
-    ) {
-      cancelAnimationFrame(animationId);
-      alert("Game Over");
-      console.log("Game Over");
-    }
 
     const collisions = [];
     boundaries.forEach((boundary) => {
       if (
-        !collisions.includes('right') && 
+        !collisions.includes("right") &&
         circleCollidesWithRectangle({
           circle: { ...ghost, velocity: { x: 1, y: 0 } },
           rectangle: boundary,
         })
       ) {
-        collisions.push('right');
+        collisions.push("right");
       }
 
       if (
-        !collisions.includes('left') && 
+        !collisions.includes("left") &&
         circleCollidesWithRectangle({
           circle: { ...ghost, velocity: { x: -1, y: 0 } },
           rectangle: boundary,
         })
       ) {
-        collisions.push('left');
+        collisions.push("left");
       }
 
       if (
-        !collisions.includes('down') && 
+        !collisions.includes("down") &&
         circleCollidesWithRectangle({
           circle: { ...ghost, velocity: { x: 0, y: 1 } },
           rectangle: boundary,
         })
       ) {
-        collisions.push('down');
+        collisions.push("down");
       }
 
       if (
-        !collisions.includes('up') && 
+        !collisions.includes("up") &&
         circleCollidesWithRectangle({
           circle: { ...ghost, velocity: { x: 0, y: -1 } },
           rectangle: boundary,
         })
       ) {
-        collisions.push('up');
+        collisions.push("up");
       }
     });
 
-    if (collisions.length > ghost.prevCollisions.length) 
-    ghost.prevCollisions = collisions;
-  
+    if (collisions.length > ghost.prevCollisions.length)
+      ghost.prevCollisions = collisions;
+
     if (JSON.stringify(collisions) !== JSON.stringify(ghost.prevCollisions)) {
-      
-      if(ghost.velocity.x > 0) ghost.prevCollisions.push('right');
-      else if(ghost.velocity.x < 0) ghost.prevCollisions.push('left');
-      else if(ghost.velocity.y > 0) ghost.prevCollisions.push('down');
-      else if(ghost.velocity.y < 0) ghost.prevCollisions.push('up');
+      if (ghost.velocity.x > 0) ghost.prevCollisions.push("right");
+      else if (ghost.velocity.x < 0) ghost.prevCollisions.push("left");
+      else if (ghost.velocity.y > 0) ghost.prevCollisions.push("down");
+      else if (ghost.velocity.y < 0) ghost.prevCollisions.push("up");
 
       const pathways = ghost.prevCollisions.filter((collision) => {
-          return !collisions.includes(collision);
-      
+        return !collisions.includes(collision);
       });
       console.log({ pathways });
 
@@ -545,30 +608,30 @@ function animate() {
       console.log({ direction });
 
       switch (direction) {
-        case 'down': 
+        case "down":
           ghost.velocity.y = Ghost.speed;
           ghost.velocity.x = 0;
           break;
-    }
+      }
       switch (direction) {
-        case 'up': 
+        case "up":
           ghost.velocity.y = -Ghost.speed;
           ghost.velocity.x = 0;
           break;
-    }
+      }
       switch (direction) {
-        case 'right': 
+        case "right":
           ghost.velocity.y = 0;
           ghost.velocity.x = Ghost.speed;
           break;
-    }
+      }
       switch (direction) {
-        case 'left': 
+        case "left":
           ghost.velocity.y = 0;
           ghost.velocity.x = -Ghost.speed;
           break;
-    }
-        ghost.prevCollisions = [];
+      }
+      ghost.prevCollisions = [];
     }
   });
 }
